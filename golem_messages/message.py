@@ -648,16 +648,24 @@ class MessageWantToComputeTask(Message):
 class MessageTaskToCompute(Message):
     TYPE = TASK_MSG_BASE + 2
 
-    __slots__ = ['compute_task_def'] + Message.__slots__
+    __slots__ = [
+            'task_id',
+            'deadline',
+            ] + Message.__slots__
 
-    def __init__(self, compute_task_def=None, **kwargs):
+    def __init__(
+                self,
+                task_id = 0,
+                deadline = 0,
+                **kwargs):
         """
         Create message with information about subtask to compute
         :param ComputeTaskDef compute_task_def: definition of a subtask that
                                                 should be computed
         """
-        self.compute_task_def = compute_task_def
-        super(MessageTaskToCompute, self).__init__(**kwargs)
+        self.task_id = task_id
+        self.deadline = deadline
+        super().__init__(**kwargs)
 
 
 class MessageCannotAssignTask(Message):
@@ -918,23 +926,23 @@ class MessageCannotComputeTask(Message):
 
     __slots__ = [
         'reason',
-        'subtask_id'
+        'task_id',
+        'deadline',
     ] + Message.__slots__
 
-    class REASON(enum.Enum):
-        WrongCTD = 'wrong_ctd'
-        WrongKey = 'wrong_key'
-        WrongAddress = 'wrong_address'
-        WrongEnvironment = 'wrong_environment'
-        NoSourceCode = 'no_source_code'
-        WrongDockerImages = 'wrong_docker_images'
 
-    def __init__(self, subtask_id=None, reason=None, **kwargs):
+    def __init__(
+            self,
+            task_id = None,
+            deadline = None,
+            reason = None,
+            **kwargs):
         """
         Message informs that the node is waiting for results
         """
         self.reason = reason
-        self.subtask_id = subtask_id
+        self.task_id = task_id
+        self.deadline = deadline
         super(MessageCannotComputeTask, self).__init__(**kwargs)
 
 
@@ -1156,81 +1164,82 @@ class MessageServiceRefused(Message):
 
 
 class MessageForceReportComputedTask(Message):
-    # TODO: update this once #5 is complete
     TYPE = CONCENT_MSG_BASE + 1
 
     __slots__ = [
-        'subtask_id',
+        'task_id',
+        'message_task_to_compute',
+        'reason'
     ] + Message.__slots__
 
-    def __init__(self, subtask_id=None, **kwargs):
-        self.subtask_id = subtask_id
-        super().__init__(**kwargs)
-
-
-class MessageAckReportComputedTask(Message):
-    # TODO: update this once #5 is complete
-    TYPE = CONCENT_MSG_BASE + 2
-
-    __slots__ = [
-        'subtask_id',
-    ] + Message.__slots__
-
-    def __init__(self, subtask_id=None, **kwargs):
-        self.subtask_id = subtask_id
-        super().__init__(**kwargs)
-
-
-class MessageRejectReportComputedTask(Message):
-    # TODO: update this once #5 is complete
-    TYPE = CONCENT_MSG_BASE + 3
-
-    @enum.unique
-    class Reason(enum.Enum):
-        """
-        since python 3.6 it's possible to do this:
-
-        class StringEnum(str, enum.Enum):
-            def _generate_next_value_(name: str, *_):
-                return name
-
-        @enum.unique
-        class Reason(StringEnum):
-            TASK_TIME_LIMIT_EXCEEDED = enum.auto()
-            SUBTASK_TIME_LIMIT_EXCEEDED = enum.auto()
-            GOT_MESSAGE_CANNOT_COMPUTE_TASK = enum.auto()
-            GOT_MESSAGE_TASK_FAILURE = enum.auto()
-        """
-        TASK_TIME_LIMIT_EXCEEDED = 'TASK_TIME_LIMIT_EXCEEDED'
-        SUBTASK_TIME_LIMIT_EXCEEDED = 'SUBTASK_TIME_LIMIT_EXCEEDED'
-        GOT_MESSAGE_CANNOT_COMPUTE_TASK = 'GOT_MESSAGE_CANNOT_COMPUTE_TASK'
-        GOT_MESSAGE_TASK_FAILURE = 'GOT_MESSAGE_TASK_FAILURE'
-
-    __slots__ = [
-        'subtask_id',
-        'reason',
-    ] + Message.__slots__
-
-    def __init__(
-            self,
-            subtask_id=None,
-            reason: Reason = None,
-            **kwargs):
-        self.subtask_id = subtask_id
+    def __init__(self,
+                task_id = None,
+                message_task_to_compute = None,
+                reason = None,
+                **kwargs):
+        self.task_id = task_id
+        self.message_task_to_compute = message_task_to_compute
         self.reason = reason
         super().__init__(**kwargs)
 
 
+class MessageAckReportComputedTask(Message):
+    TYPE = CONCENT_MSG_BASE + 2
+
+    __slots__ = [
+        'task_id',
+        'message_task_to_compute',
+    ] + Message.__slots__
+
+    def __init__(self,
+                task_id=None,
+                message_task_to_compute=None,
+                **kwargs):
+        self.task_id = task_id
+        self.message_task_to_compute = message_task_to_compute
+        super().__init__(**kwargs)
+
+class MessageRejectReportComputedTask(Message):
+    TYPE = CONCENT_MSG_BASE + 3
+
+    __slots__ = [
+        'task_id',
+        'reason',
+        'message_cannot_compute_task',
+        'message_task_to_compute',
+    ] + Message.__slots__
+
+    def __init__(
+            self,
+            task_id = None,
+            reason = None,
+            message_cannot_compute_task = None,
+            message_task_to_compute = None,
+            **kwargs):
+        self.task_id = task_id
+        self.reason = reason
+        self.message_cannot_compute_task = message_cannot_compute_task
+        self.message_task_to_compute = message_task_to_compute
+        super().__init__(**kwargs)
+
+
 class MessageVerdictReportComputedTask(Message):
-    # TODO: update this once #5 is complete
     TYPE = CONCENT_MSG_BASE + 4
 
     __slots__ = [
-        'subtask_id',
+        'task_id',
+        'message_force_report_computed_task',
+        'message_ack_report_computed_task'
     ] + Message.__slots__
 
-    def __init__(self, subtask_id=None, **kwargs):
-        self.subtask_id = subtask_id
+    def __init__(self,
+                task_id=None,
+                message_force_report_computed_task = None,
+                message_ack_report_computed_task = None,
+                **kwargs):
+        self.task_id = task_id
+        self.message_force_report_computed_task = message_force_report_computed_task
+        self.message_ack_report_computed_task = message_ack_report_computed_task
         super().__init__(**kwargs)
 
 
