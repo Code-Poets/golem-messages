@@ -22,18 +22,18 @@ def verify_time(timestamp):
 
     NOTE: This method deliberately ignores microseconds - precision=1s
     """
-    now = datetime.datetime.utcnow()
-    try:
-        msgdt = datetime.datetime.utcfromtimestamp(timestamp)
-    except (TypeError, OSError, OverflowError):
-        raise exceptions.TimestampError()
-    delta = now - msgdt
-    delta_future = msgdt - now
-    logger.debug('msgdt %s Δ %s Δfuture %s', msgdt, delta, delta_future)
-    if delta > settings.MSG_TTL:
-        raise exceptions.MessageTooOldError()
-    if delta_future > settings.FUTURE_TIME_TOLERANCE:
-        raise exceptions.MessageFromFutureError()
+    # now = datetime.datetime.utcnow()
+    # try:
+    #     msgdt = datetime.datetime.utcfromtimestamp(timestamp)
+    # except (TypeError, OSError, OverflowError):
+    #     raise exceptions.TimestampError()
+    # delta = now - msgdt
+    # delta_future = msgdt - now
+    # logger.debug('msgdt %s Δ %s Δfuture %s', msgdt, delta, delta_future)
+    # if delta > settings.MSG_TTL:
+    #     raise exceptions.MessageTooOldError()
+    # if delta_future > settings.FUTURE_TIME_TOLERANCE:
+    #     raise exceptions.MessageFromFutureError()
 
 
 class ComputeTaskDef(datastructures.FrozenDict):
