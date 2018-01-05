@@ -119,6 +119,7 @@ class Message(object):
         # XXX if public_key == 0 or public_key is None: return data
         # XXX self.keys_auth.encrypt(data, public_key)
         try:
+            encrypt_func=None
             self.encrypted = self.ENCRYPT and encrypt_func
             payload = self.serialize_payload()
 
